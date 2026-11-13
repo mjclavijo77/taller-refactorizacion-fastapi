@@ -1,4 +1,3 @@
-# Autor: Manuel Jose Clavijo - 13 de noviembre de 2026
 # Servicios externos pasados a asincrono y patron Strategy en notificaciones
 
 import asyncio

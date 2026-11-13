@@ -1,4 +1,3 @@
-# Autor: Manuel Jose Clavijo - 13 de noviembre de 2026
 # Rutas de checkout usando Depends para no instanciar clases adentro
 
 from fastapi import APIRouter, HTTPException, Depends

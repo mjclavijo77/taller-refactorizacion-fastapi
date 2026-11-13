@@ -1,4 +1,3 @@
-# Autor: Manuel Jose Clavijo - 13 de noviembre de 2026
 # Manejo del inventario en memoria corrigiendo el problema de concurrencia
 
 import asyncio

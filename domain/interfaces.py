@@ -1,4 +1,3 @@
-# Autor: Manuel Jose Clavijo - 13 de noviembre de 2026
 # Interfaces abstractas para separar la logica y cumplir con DIP
 from abc import ABC, abstractmethod
 
