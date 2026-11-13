@@ -1,3 +1,5 @@
+# Autor: Manuel Jose Clavijo - 13 de noviembre de 2026
+# Interfaces abstractas para separar la logica y cumplir con DIP
 from abc import ABC, abstractmethod
 
 class IInventoryRepository(ABC):
@@ -14,7 +16,7 @@ class IPaymentGateway(ABC):
     async def execute_charge(self, token: str, amount: float) -> bool:
         pass
 
-# esta seria nuetra interface base
+# Molde base para las notificaciones y no usar tantos if/elif
 class INotificationStrategy(ABC):
     @abstractmethod
     async def send(self, destination: str, message: str) -> None:

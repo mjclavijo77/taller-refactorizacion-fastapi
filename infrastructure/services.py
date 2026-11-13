@@ -1,23 +1,24 @@
+# Autor: Manuel Jose Clavijo - 13 de noviembre de 2026
+# Servicios externos pasados a asincrono y patron Strategy en notificaciones
+
 import asyncio
 import math
 import httpx
 from concurrent.futures import ProcessPoolExecutor
 from domain.interfaces import IPaymentGateway, INotificationStrategy, IDocumentService
 
-
 class StripePaymentGateway(IPaymentGateway):
     async def execute_charge(self, token: str, amount: float) -> bool:
         try:
-            # Usamos httpx en lugar del requests sincrono que bloqueaba el servidor
+            # Cambie requests por httpx para hacer la peticion sin bloquear el servidor
             async with httpx.AsyncClient() as client:
                 payload = {"token": token, "amount": amount, "key": "sk_test_mock_12345"}
-                # Usamos una URL de prueba generica para no fallar
-                response = await client.post("https://httpbin.org/post", json=payload, timeout=5)
+                response = await client.post("https://api.stripe.mock/v1/charges", json=payload, timeout=5)
                 return response.status_code == 200
         except Exception:
             return False
 
-# PATRON STRATEGY PARA NOTIFICACIONES 
+# Clases separadas por cada canal de notificacion (Strategy) 
 class EmailNotificationStrategy(INotificationStrategy):
     async def send(self, destination: str, message: str) -> None:
         print(f"SMTP: Enviando a {destination}")
@@ -33,8 +34,8 @@ class WebhookNotificationStrategy(INotificationStrategy):
         print("Webhook HTTP POST a endpoint del cliente")
         await asyncio.sleep(0.3)
 
-# DELEGACIoN DE CPU INTENSIVA 
-def _math_intensive_pdf_generation(order_id: str, amount: float) -> bytes:
+# Funcion pesada del calculo del PDF separada para correrla aparte
+def _calcular_pdf(order_id: str, amount: float) -> bytes:
     iterations = 5_000_000
     result = 0.0
     for i in range(iterations):
@@ -44,12 +45,12 @@ def _math_intensive_pdf_generation(order_id: str, amount: float) -> bytes:
 
 class InvoiceGeneratorService(IDocumentService):
     def __init__(self):
-        # Creamos un pool de procesos para sacar la matematica del Event Loop principal
-        self.executor = ProcessPoolExecutor(max_workers=2)
+        # Ejecutor para que el for de 5 millones no trabe el hilo principal
+        self.executor = ProcessPoolExecutor()
 
     async def generate_manifest(self, order_id: str, amount: float) -> bytes:
         loop = asyncio.get_running_loop()
-        # Mandamos el calculo pesado a un núcleo del procesador diferente
+        # Mandamos a calcular el PDF en otro proceso y esperamos con await
         return await loop.run_in_executor(
-            self.executor, _math_intensive_pdf_generation, order_id, amount
+            self.executor, _calcular_pdf, order_id, amount
         )
